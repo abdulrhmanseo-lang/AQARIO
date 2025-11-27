@@ -8,7 +8,8 @@ import {
     CreditCard,
     LogOut,
     Menu,
-    X
+    X,
+    Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -18,33 +19,41 @@ export default function DashboardLayout() {
     const location = useLocation();
 
     const menuItems = [
-        { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-        { path: '/properties', icon: Building2, label: 'Properties' },
-        { path: '/contracts', icon: FileText, label: 'Contracts' },
-        { path: '/finance', icon: CreditCard, label: 'Finance' },
+        { path: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم' },
+        { path: '/properties', icon: Building2, label: 'العقارات' },
+        { path: '/clients', icon: Users, label: 'العملاء' },
+        { path: '/contracts', icon: FileText, label: 'العقود' },
+        { path: '/finance', icon: CreditCard, label: 'المالية' },
     ];
 
     return (
-        <div className="min-h-screen bg-dark-900 flex">
+        <div className="min-h-screen bg-gray-50 flex">
             {/* Sidebar */}
             <AnimatePresence mode='wait'>
                 {isSidebarOpen && (
                     <motion.aside
                         initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: 260, opacity: 1 }}
+                        animate={{ width: 280, opacity: 1 }}
                         exit={{ width: 0, opacity: 0 }}
-                        className="bg-dark-800 border-r border-gray-800 flex-shrink-0 overflow-hidden"
+                        className="bg-white border-r border-gray-200 flex-shrink-0 overflow-hidden shadow-sm"
                     >
-                        <div className="p-6 flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-                                <Building2 size={20} className="text-white" />
+                        {/* Logo */}
+                        <div className="p-6 border-b border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-600/30">
+                                    <Building2 size={22} className="text-white" />
+                                </div>
+                                <div>
+                                    <span className="font-bold text-xl text-gray-900">
+                                        عقاريّو
+                                    </span>
+                                    <p className="text-xs text-gray-500">Aqario</p>
+                                </div>
                             </div>
-                            <span className={`font-bold text-xl transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
-                                عقاريّو
-                            </span>
                         </div>
 
-                        <nav className="mt-6 px-4 space-y-2">
+                        {/* Navigation */}
+                        <nav className="mt-6 px-4 space-y-1">
                             {menuItems.map((item) => {
                                 const Icon = item.icon;
                                 const isActive = location.pathname === item.path;
@@ -53,9 +62,9 @@ export default function DashboardLayout() {
                                     <Link
                                         key={item.path}
                                         to={item.path}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                                ? 'bg-primary/10 text-primary border border-primary/20'
-                                                : 'text-gray-400 hover:bg-dark-700 hover:text-white'
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                                                ? 'bg-violet-50 text-violet-700 font-semibold border border-violet-200 shadow-sm'
+                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                             }`}
                                     >
                                         <Icon size={20} />
@@ -65,22 +74,23 @@ export default function DashboardLayout() {
                             })}
                         </nav>
 
-                        <div className="absolute bottom-0 w-full p-4 border-t border-gray-800 bg-dark-800">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                        {/* User Profile */}
+                        <div className="absolute bottom-0 w-full p-4 border-t border-gray-100 bg-white">
+                            <div className="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-xl">
+                                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center text-white font-bold shadow-md">
                                     {user?.username?.[0]?.toUpperCase()}
                                 </div>
-                                <div>
-                                    <p className="text-sm font-medium text-white">{user?.username}</p>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-gray-900 truncate">{user?.username}</p>
                                     <p className="text-xs text-gray-500 capitalize">{user?.role?.toLowerCase()}</p>
                                 </div>
                             </div>
                             <button
                                 onClick={logout}
-                                className="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm w-full px-2 py-2 rounded hover:bg-red-500/10 transition-colors"
+                                className="flex items-center justify-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm w-full px-4 py-2.5 rounded-xl transition-all font-medium border border-red-200"
                             >
                                 <LogOut size={16} />
-                                Sign Out
+                                تسجيل الخروج
                             </button>
                         </div>
                     </motion.aside>
@@ -90,10 +100,10 @@ export default function DashboardLayout() {
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
-                <header className="h-16 bg-dark-800/50 backdrop-blur-md border-b border-gray-800 flex items-center justify-between px-6 sticky top-0 z-20">
+                <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-2 rounded-lg transition-colors"
                     >
                         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
@@ -104,7 +114,7 @@ export default function DashboardLayout() {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 p-6 overflow-auto">
+                <main className="flex-1 overflow-auto bg-gray-50">
                     <Outlet />
                 </main>
             </div>

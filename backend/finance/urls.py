@@ -1,7 +1,10 @@
-from django.urls import path
-from .views import InvoiceListCreateView, InvoiceDetailView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import InvoiceViewSet
+
+router = DefaultRouter()
+router.register(r'', InvoiceViewSet, basename='invoice')
 
 urlpatterns = [
-    path('', InvoiceListCreateView.as_view(), name='invoice-list-create'),
-    path('<int:pk>/', InvoiceDetailView.as_view(), name='invoice-detail'),
+    path('', include(router.urls)),
 ]
