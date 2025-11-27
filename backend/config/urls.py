@@ -27,6 +27,8 @@ urlpatterns = [
     path('api/properties/', include('properties.urls')),
     path('api/contracts/', include('contracts.urls')),
     path('api/finance/', include('finance.urls')),
+    path('api/clients/', include('clients.urls')),
+    path('api/dashboard/', include('core.dashboard_urls')),
     
     # Swagger
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

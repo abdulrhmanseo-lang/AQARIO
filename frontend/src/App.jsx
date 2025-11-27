@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import DashboardLayout from './layouts/DashboardLayout';
 import Properties from './pages/Properties';
 import PropertyForm from './pages/PropertyForm';
+import Clients from './pages/Clients';
 import Contracts from './pages/Contracts';
 import ContractForm from './pages/ContractForm';
 import Finance from './pages/Finance';
@@ -36,11 +37,11 @@ function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/new" element={<PropertyForm />} />
+        <Route path="/clients" element={<Clients />} />
         <Route path="/contracts" element={<Contracts />} />
         <Route path="/contracts/new" element={<ContractForm />} />
         <Route path="/finance" element={<Finance />} />
         <Route path="/finance/new" element={<InvoiceForm />} />
-        {/* Add other routes here */}
       </Route>
     </Routes>
   );

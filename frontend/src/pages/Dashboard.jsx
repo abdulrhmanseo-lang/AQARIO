@@ -1,170 +1,223 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axios';
+import axios from '../api/axios';
+import { Building2, Users, FileText, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import { Line, Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
     PointElement,
     LineElement,
-    BarElement,
+    ArcElement,
     Title,
     Tooltip,
     Legend,
-    ArcElement
 } from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
-import { Building2, Users, FileText, DollarSign } from 'lucide-react';
 
 ChartJS.register(
     CategoryScale,
     LinearScale,
     PointElement,
     LineElement,
-    BarElement,
+    ArcElement,
     Title,
     Tooltip,
-    Legend,
-    ArcElement
+    Legend
 );
 
 export default function Dashboard() {
-    const [stats, setStats] = useState({
-        properties: 0,
-        contracts: 0,
-        revenue: 0,
-        clients: 0
-    });
+    const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchStats();
+        fetchDashboardStats();
     }, []);
 
-    const fetchStats = async () => {
+    const fetchDashboardStats = async () => {
         try {
-            // In a real app, we would have a dedicated stats endpoint
-            // For now, we'll fetch lists and count
-            const [props, conts, invs] = await Promise.all([
-                api.get('/properties/'),
-                api.get('/contracts/'),
-                api.get('/finance/')
-            ]);
-
-            const revenue = invs.data
-                .filter(i => i.status === 'PAID')
-                .reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
-
-            setStats({
-                properties: props.data.length,
-                contracts: conts.data.length,
-                revenue: revenue,
-                clients: 5 // Mock client count
-            });
+            const response = await axios.get('/dashboard/stats/');
+            setStats(response.data);
         } catch (error) {
-            console.error('Error fetching stats:', error);
+            console.error('Error fetching dashboard stats:', error);
+            // Fallback to mock data if API fails
+            setStats({
+                counts: { properties: 0, clients: 0, active_contracts: 0 },
+                financial: { total_revenue: 0, pending_amount: 0, overdue_amount: 0 },
+                charts: { monthly_revenue: [], property_distribution: [] }
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: { color: '#9ca3af' }
-            }
-        },
-        scales: {
-            y: {
-                grid: { color: '#374151' },
-                ticks: { color: '#9ca3af' }
-            },
-            x: {
-                grid: { color: '#374151' },
-                ticks: { color: '#9ca3af' }
-            }
-        }
-    };
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
-    const revenueData = {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    const revenueChartData = {
+        labels: stats?.charts?.monthly_revenue?.map(item => item.month) || [],
         datasets: [
             {
                 label: 'Revenue',
-                data: [12000, 19000, 3000, 5000, 2000, 3000], // Mock data
-                borderColor: '#8b5cf6',
-                backgroundColor: 'rgba(139, 92, 246, 0.5)',
-                tension: 0.4
-            }
-        ]
+                data: stats?.charts?.monthly_revenue?.map(item => item.revenue) || [],
+                borderColor: 'rgb(139, 92, 246)',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                tension: 0.4,
+            },
+        ],
     };
 
-    const propertyData = {
-        labels: ['Apartment', 'Villa', 'Office', 'Shop'],
+    const propertyDistributionData = {
+        labels: stats?.charts?.property_distribution?.map(item => item.property_type) || [],
         datasets: [
             {
-                label: 'Properties',
-                data: [12, 19, 3, 5], // Mock data
+                data: stats?.charts?.property_distribution?.map(item => item.count) || [],
                 backgroundColor: [
                     'rgba(139, 92, 246, 0.8)',
                     'rgba(16, 185, 129, 0.8)',
+                    'rgba(251, 191, 36, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
                     'rgba(59, 130, 246, 0.8)',
-                    'rgba(245, 158, 11, 0.8)',
                 ],
-                borderWidth: 0
-            }
-        ]
+            },
+        ],
     };
 
-    if (loading) return <div className="text-center text-gray-400">Loading Dashboard...</div>;
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#9CA3AF',
+                },
+            },
+        },
+        scales: {
+            y: {
+                ticks: { color: '#9CA3AF' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            },
+            x: {
+                ticks: { color: '#9CA3AF' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            },
+        },
+    };
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold text-white mb-6">Dashboard Overview</h1>
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+                <p className="text-gray-400 mt-1">Welcome back! Here's your overview</p>
+            </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatsCard icon={Building2} label="Properties" value={stats.properties} color="bg-blue-500" />
-                <StatsCard icon={FileText} label="Contracts" value={stats.contracts} color="bg-purple-500" />
-                <StatsCard icon={DollarSign} label="Revenue" value={`$${stats.revenue}`} color="bg-green-500" />
-                <StatsCard icon={Users} label="Clients" value={stats.clients} color="bg-orange-500" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard
+                    title="Properties"
+                    value={stats?.counts?.properties || 0}
+                    icon={Building2}
+                    color="bg-violet-500/20 text-violet-400"
+                />
+                <StatCard
+                    title="Clients"
+                    value={stats?.counts?.clients || 0}
+                    icon={Users}
+                    color="bg-emerald-500/20 text-emerald-400"
+                />
+                <StatCard
+                    title="Active Contracts"
+                    value={stats?.counts?.active_contracts || 0}
+                    icon={FileText}
+                    color="bg-blue-500/20 text-blue-400"
+                />
+                <StatCard
+                    title="Total Revenue"
+                    value={`$${(stats?.financial?.total_revenue || 0).toLocaleString()}`}
+                    icon={DollarSign}
+                    color="bg-amber-500/20 text-amber-400"
+                />
             </div>
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-dark-800 p-6 rounded-xl border border-gray-800">
-                    <h3 className="text-lg font-bold text-white mb-4">Revenue Trends</h3>
-                    <Line options={chartOptions} data={revenueData} />
-                </div>
-                <div className="bg-dark-800 p-6 rounded-xl border border-gray-800">
-                    <h3 className="text-lg font-bold text-white mb-4">Property Distribution</h3>
-                    <div className="h-64 flex justify-center">
-                        <Doughnut
-                            data={propertyData}
-                            options={{
-                                plugins: {
-                                    legend: { position: 'right', labels: { color: '#9ca3af' } }
-                                }
-                            }}
-                        />
+                <div className="bg-dark-800 rounded-xl p-6 border border-gray-700">
+                    <h3 className="text-lg font-semibold text-white mb-4">Revenue Trend</h3>
+                    <div className="h-64">
+                        <Line data={revenueChartData} options={chartOptions} />
                     </div>
+                </div>
+
+                <div className="bg-dark-800 rounded-xl p-6 border border-gray-700">
+                    <h3 className="text-lg font-semibold text-white mb-4">Property Distribution</h3>
+                    <div className="h-64">
+                        <Doughnut data={propertyDistributionData} options={{ ...chartOptions, scales: undefined }} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Financial Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FinancialCard
+                    title="Pending Payments"
+                    amount={stats?.financial?.pending_amount || 0}
+                    icon={TrendingUp}
+                    trend="warning"
+                />
+                <FinancialCard
+                    title="Overdue Payments"
+                    amount={stats?.financial?.overdue_amount || 0}
+                    icon={TrendingDown}
+                    trend="danger"
+                />
+                <FinancialCard
+                    title="Total Revenue"
+                    amount={stats?.financial?.total_revenue || 0}
+                    icon={DollarSign}
+                    trend="success"
+                />
+            </div>
+        </div>
+    );
+}
+
+function StatCard({ title, value, icon: Icon, color }) {
+    return (
+        <div className="bg-dark-800 rounded-xl p-6 border border-gray-700 hover:border-primary/50 transition-colors">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-gray-400 text-sm">{title}</p>
+                    <p className="text-3xl font-bold text-white mt-2">{value}</p>
+                </div>
+                <div className={`w-12 h-12 rounded-lg ${color} flex items-center justify-center`}>
+                    <Icon size={24} />
                 </div>
             </div>
         </div>
     );
 }
 
-function StatsCard({ icon: Icon, label, value, color }) {
+function FinancialCard({ title, amount, icon: Icon, trend }) {
+    const trendColors = {
+        success: 'text-emerald-400',
+        warning: 'text-amber-400',
+        danger: 'text-red-400',
+    };
+
     return (
-        <div className="bg-dark-800 p-6 rounded-xl border border-gray-800 flex items-center gap-4 hover:border-gray-600 transition-colors">
-            <div className={`p-3 rounded-lg ${color} bg-opacity-20 text-${color.split('-')[1]}-500`}>
-                <Icon size={24} />
+        <div className="bg-dark-800 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center gap-3 mb-3">
+                <Icon size={20} className={trendColors[trend]} />
+                <h4 className="text-gray-400 font-medium">{title}</h4>
             </div>
-            <div>
-                <p className="text-gray-400 text-sm">{label}</p>
-                <p className="text-2xl font-bold text-white">{value}</p>
-            </div>
+            <p className={`text-2xl font-bold ${trendColors[trend]}`}>
+                ${amount.toLocaleString()}
+            </p>
         </div>
     );
 }
